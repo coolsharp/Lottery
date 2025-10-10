@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.accompanist.appcompat.theme)
     implementation(libs.toolbar.compose)
+    implementation(libs.accompanist.systemuicontroller)
     kapt(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

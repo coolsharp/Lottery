@@ -43,6 +43,11 @@ fun ProfileLayout(modifier: Modifier) {
             TabRow(selectedTabIndex = 0) {
                 repeat(1) {
                     Tab(selected = it == 0, onClick = {}) {
+                        Spacer(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(10.dp)
+                        )
                         Text(
                             "내 번호관리"
                         )
