@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,85 +15,141 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.coolsharp.lottery.R
 import com.coolsharp.lottery.common.CircleWithStroke
 import com.coolsharp.lottery.data.LottoNumber
 import com.coolsharp.lottery.data.WinnerLottoNumber
+import com.coolsharp.lottery.viewmodel.TabViewModel
+import com.coolsharp.lottery.viewmodel.TabViewModelHolder
 
 @Composable
 fun ProfileLayout(modifier: Modifier) {
-    LazyColumn(modifier.fillMaxWidth()) {
-        item {
-            val winnerLottoNumber: WinnerLottoNumber = WinnerLottoNumber(
-                number1 = 1,
-                number2 = 12,
-                number3 = 23,
-                number4 = 34,
-                number5 = 45,
-                number6 = 6,
-                bonusNumber = 2,
-                1192
-            )
-            ProfileHeader(winnerLottoNumber)
-        }
-        stickyHeader {
-            TabRow(selectedTabIndex = 0) {
-                repeat(1) {
-                    Tab(selected = it == 0, onClick = {}) {
-                        Spacer(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(10.dp)
-                        )
-                        Text(
-                            "내 번호관리"
-                        )
-                        Spacer(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(10.dp)
-                        )
+    val viewModel = TabViewModelHolder.viewModel
+    val selectedTabIndex by viewModel.selectedTabIndex.collectAsState()
+
+    Column(modifier = modifier.fillMaxSize()) {
+        LazyColumn(modifier.fillMaxWidth().weight(1f)) {
+            item {
+                val winnerLottoNumber: WinnerLottoNumber = WinnerLottoNumber(
+                    number1 = 1,
+                    number2 = 12,
+                    number3 = 23,
+                    number4 = 34,
+                    number5 = 45,
+                    number6 = 6,
+                    bonusNumber = 2,
+                    1192
+                )
+                ProfileHeader(winnerLottoNumber)
+            }
+            stickyHeader {
+                TabRow(selectedTabIndex = selectedTabIndex) {
+                    repeat(2) { index ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = {
+                                viewModel.selectTab(index)
+                            }
+                        ) {
+                            Spacer(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(10.dp)
+                            )
+                            var text = ""
+                            when (index) {
+                                0 -> text = stringResource(R.string.my_number_management)
+                                1 -> text = stringResource(R.string.winning_numbers_by_draw)
+                            }
+                            Text(text)
+                            Spacer(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(10.dp)
+                            )
+                        }
                     }
                 }
             }
-        }
-        items(100) {
-            val lottoNumber: LottoNumber = LottoNumber(
-                number1 = 1,
-                number2 = 12,
-                number3 = 23,
-                number4 = 34,
-                number5 = 45,
-                number6 = 6
-            )
+            when (selectedTabIndex) {
+                0 -> {
+                    myLottoNumberContent()
+                }
+                1 -> {
 
-            var margin = 10
-            if (it == 0 || it == 99) {
-                margin = 20
+                }
             }
-
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(margin.dp)
-            )
-            DrawLottoNumber(lottoNumber)
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp)
-            )
         }
+
+        Row() {
+            Spacer(modifier = Modifier.width(10.dp))
+            Button(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp),
+                onClick = {
+                    // 버튼 클릭 시 실행할 로직
+                }
+            ) {
+                Text("새 번호 생성")
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Button(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp),
+                onClick = {
+                    // 버튼 클릭 시 실행할 로직
+                }
+            ) {
+                Text("QR 당첨확인")
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+    }
+}
+
+fun LazyListScope.myLottoNumberContent() {
+    items(100) { index ->
+        val lottoNumber: LottoNumber = LottoNumber(
+            number1 = 1,
+            number2 = 12,
+            number3 = 23,
+            number4 = 34,
+            number5 = 45,
+            number6 = 6
+        )
+
+        val margin = if (index == 0) 20 else 10
+
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(margin.dp)
+        )
+        DrawLottoNumber(lottoNumber)
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+        )
     }
 }
 
 @Composable
 fun ProfileHeader(winnerLottoNumber: WinnerLottoNumber) {
     Column {
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
