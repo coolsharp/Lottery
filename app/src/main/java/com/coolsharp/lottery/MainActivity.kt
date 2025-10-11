@@ -1,6 +1,7 @@
 package com.coolsharp.lottery
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -14,9 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.coolsharp.lottery.network.RetrofitInstance
 import com.coolsharp.lottery.ui.ProfileLayout
 import com.coolsharp.lottery.ui.SplashScreen
 import com.coolsharp.lottery.viewmodel.SplashViewModel
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

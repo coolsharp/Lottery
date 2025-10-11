@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlinx-serialization")
+    id("kotlin-parcelize")
     id("kotlin-kapt")
 }
 
@@ -56,6 +58,12 @@ dependencies {
     implementation(libs.accompanist.appcompat.theme)
     implementation(libs.toolbar.compose)
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+    implementation(libs.okhttp.profiler)
     kapt(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
