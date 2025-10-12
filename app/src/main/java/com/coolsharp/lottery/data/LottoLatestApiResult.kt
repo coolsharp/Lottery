@@ -5,11 +5,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LottoApi(
+data class LottoLatestApiResult(
     @SerialName("data")
-    val data: List<Lotto>,
-    @SerialName("pagination")
-    val pagination: Pagination,
+    val data: Lotto,
     @SerialName("success")
     val success: Boolean
 )

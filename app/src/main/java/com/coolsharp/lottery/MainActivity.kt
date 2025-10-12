@@ -35,6 +35,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        MainScope().launch {
+            val result = RetrofitInstance.lottoLatestApiService.getLatestLotto(
+            )
+            Log.d("posts: ", result.toString())
+        }
+
     }
 
     @Composable

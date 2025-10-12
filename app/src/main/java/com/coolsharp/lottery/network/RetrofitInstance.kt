@@ -12,7 +12,7 @@ import kotlin.getValue
 import kotlin.setValue
 
 object RetrofitInstance {
-    private const val BASE_URL = "https://coolsharp0.mycafe24.com/php/lotto_api.php"
+    private const val BASE_URL = "https://coolsharp0.mycafe24.com/"
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
@@ -39,5 +39,14 @@ object RetrofitInstance {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(LottoApiService::class.java)
+    }
+
+    val lottoLatestApiService: LottoLatestApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(LottoLatestApiService::class.java)
     }
 }
