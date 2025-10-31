@@ -49,8 +49,8 @@ class MainActivity : ComponentActivity() {
         val appState by viewModel.appState.collectAsState()
 
         when (appState) {
-            is AppState.Splash -> SplashScreen(modifier)
-            is AppState.Main -> ProfileLayout(modifier)
+            is AppState.Splash -> SplashScreen(context = this,modifier)
+            is AppState.Main -> ProfileLayout(context = this, modifier)
         }
     }
 

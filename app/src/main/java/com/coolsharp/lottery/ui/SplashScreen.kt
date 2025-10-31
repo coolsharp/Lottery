@@ -1,5 +1,6 @@
 package com.coolsharp.lottery.ui
 
+import android.content.Context
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -100,7 +101,7 @@ fun SplashContent(onTimeout: () -> Unit) {
 
 // 스플래시 스크린
 @Composable
-fun SplashScreen(modifier: Modifier) {
+fun SplashScreen(context: Context, modifier: Modifier) {
     var showSplash by remember { mutableStateOf(true) }
 
     if (showSplash) {
@@ -108,6 +109,6 @@ fun SplashScreen(modifier: Modifier) {
             showSplash = false
         }
     } else {
-        ProfileLayout(modifier)
+        ProfileLayout(context = context, modifier)
     }
 }

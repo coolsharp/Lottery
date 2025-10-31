@@ -1,15 +1,15 @@
 package com.coolsharp.lottery.ui
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -24,21 +24,29 @@ import com.coolsharp.lottery.R
 import com.coolsharp.lottery.common.CircleWithStroke
 import com.coolsharp.lottery.data.Lotto
 import com.coolsharp.lottery.data.LottoLatestApiResult
+import com.coolsharp.lottery.data.LottoNumbers
 import com.coolsharp.lottery.data.UiStateLatestLotto
-import com.coolsharp.lottery.data.WinnerLottoNumber
 import com.coolsharp.lottery.viewmodel.LottoViewModel
 import com.coolsharp.lottery.viewmodel.MainViewModel
+import com.coolsharp.lottery.viewmodel.NumbersViewModel
 import com.coolsharp.lottery.viewmodel.TabViewModelHolder
+import com.coolsharp.qrcode.QRActivity
+
 
 @Composable
-fun ProfileLayout(modifier: Modifier, lottoViewModel: LottoViewModel = viewModel(), mainViewModel: MainViewModel = viewModel()) {
+fun ProfileLayout(context: Context, modifier: Modifier, lottoViewModel: LottoViewModel = viewModel(), mainViewModel: MainViewModel = viewModel(), numberViewModel: NumbersViewModel = viewModel()) {
     val viewModel = TabViewModelHolder.viewModel
     val selectedTabIndex by viewModel.selectedTabIndex.collectAsState()
     val lottoApi = lottoViewModel.lotto.collectAsLazyPagingItems()
     val uiState by mainViewModel.uiState.collectAsState()
+    val numbersData by numberViewModel.numbersLiveData.observeAsState()
+    numberViewModel.loadNumbers()
+//    Log.d("coolsharp", numbersData?.numbers.toString())
 
     Column(modifier = modifier.fillMaxSize()) {
-        LazyColumn(modifier.fillMaxWidth().weight(1f)) {
+        LazyColumn(modifier
+            .fillMaxWidth()
+            .weight(1f)) {
             item {
                 when (uiState) {
                     is UiStateLatestLotto.Loading -> {
@@ -96,7 +104,7 @@ fun ProfileLayout(modifier: Modifier, lottoViewModel: LottoViewModel = viewModel
             }
             when (selectedTabIndex) {
                 0 -> {
-
+                    lottoNumberContent(numbersData)
                 }
                 1 -> {
                     winnerLottoNumberContent(lottoApi)
@@ -122,12 +130,36 @@ fun ProfileLayout(modifier: Modifier, lottoViewModel: LottoViewModel = viewModel
                     .weight(1f)
                     .height(50.dp),
                 onClick = {
-                    // 버튼 클릭 시 실행할 로직
+                    val intent: Intent = Intent(context, QRActivity::class.java)
+                    context.startActivity(intent)
                 }
             ) {
                 Text("QR 당첨확인")
             }
             Spacer(modifier = Modifier.width(10.dp))
+        }
+    }
+}
+
+fun LazyListScope.lottoNumberContent(numberViewModel: LottoNumbers?) {
+    numberViewModel?.let {
+        items(it.numbers.size) { index ->
+            it.numbers[index].let { lotto ->
+
+                val margin = if (index == 0) 20 else 10
+
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(margin.dp)
+                )
+                DrawLottoNumber(lotto)
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(10.dp)
+                )
+            }
         }
     }
 }
@@ -217,22 +249,22 @@ fun DrawWinnerLottoNumber(lotto: Lotto) {
 }
 
 @Composable
-fun DrawLottoNumber(lotto: Lotto) {
+fun DrawLottoNumber(lotto: List<Int>) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CircleWithStroke(lotto.numbers[0]) {}
+        CircleWithStroke(lotto[0]) {}
         Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[1]) {}
+        CircleWithStroke(lotto[1]) {}
         Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[2]) {}
+        CircleWithStroke(lotto[2]) {}
         Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[3]) {}
+        CircleWithStroke(lotto[3]) {}
         Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[4]) {}
+        CircleWithStroke(lotto[4]) {}
         Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[5]) {}
+        CircleWithStroke(lotto[5]) {}
     }
 }
