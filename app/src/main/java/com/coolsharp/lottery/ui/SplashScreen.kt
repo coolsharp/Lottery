@@ -109,6 +109,6 @@ fun SplashScreen(context: Context, modifier: Modifier) {
             showSplash = false
         }
     } else {
-        ProfileLayout(context = context, modifier)
+        MainLayout(context = context, modifier)
     }
 }

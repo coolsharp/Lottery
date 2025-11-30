@@ -2,14 +2,23 @@ package com.coolsharp.lottery.ui
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -29,24 +38,39 @@ import com.coolsharp.lottery.data.UiStateLatestLotto
 import com.coolsharp.lottery.viewmodel.LottoViewModel
 import com.coolsharp.lottery.viewmodel.MainViewModel
 import com.coolsharp.lottery.viewmodel.NumbersViewModel
+import com.coolsharp.lottery.viewmodel.TabViewModel
 import com.coolsharp.lottery.viewmodel.TabViewModelHolder
 import com.coolsharp.qrcode.QRActivity
 
 
 @Composable
-fun ProfileLayout(context: Context, modifier: Modifier, lottoViewModel: LottoViewModel = viewModel(), mainViewModel: MainViewModel = viewModel(), numberViewModel: NumbersViewModel = viewModel()) {
-    val viewModel = TabViewModelHolder.viewModel
-    val selectedTabIndex by viewModel.selectedTabIndex.collectAsState()
+fun MainLayout(
+    context: Context,
+    modifier: Modifier,
+    lottoViewModel: LottoViewModel = viewModel(),
+    mainViewModel: MainViewModel = viewModel(),
+    numberViewModel: NumbersViewModel = viewModel(),
+    tabViewModel: TabViewModel = viewModel()
+) {
+    val selectedTabIndex by tabViewModel.selectedTabIndex.collectAsState()
     val lottoApi = lottoViewModel.lotto.collectAsLazyPagingItems()
     val uiState by mainViewModel.uiState.collectAsState()
     val numbersData by numberViewModel.numbersLiveData.observeAsState()
     numberViewModel.loadNumbers()
 //    Log.d("coolsharp", numbersData?.numbers.toString())
 
+    // 하드웨어 백키 클릭 핸들러
+    BackHandler(enabled = numberViewModel.isEditMode.value) {
+        // 에디트 모드 해제
+        numberViewModel.toggleEditMode()
+    }
+
     Column(modifier = modifier.fillMaxSize()) {
-        LazyColumn(modifier
-            .fillMaxWidth()
-            .weight(1f)) {
+        LazyColumn(
+            modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
             item {
                 when (uiState) {
                     is UiStateLatestLotto.Loading -> {
@@ -60,7 +84,7 @@ fun ProfileLayout(context: Context, modifier: Modifier, lottoViewModel: LottoVie
 
                     is UiStateLatestLotto.Success -> {
                         val lotto = (uiState as UiStateLatestLotto.Success).data
-                        ProfileHeader(lotto)
+                        MainHeader(lotto)
                     }
 
                     is UiStateLatestLotto.Error -> {
@@ -79,7 +103,7 @@ fun ProfileLayout(context: Context, modifier: Modifier, lottoViewModel: LottoVie
                         Tab(
                             selected = selectedTabIndex == index,
                             onClick = {
-                                viewModel.selectTab(index)
+                                tabViewModel.selectTab(index)
                             }
                         ) {
                             Spacer(
@@ -104,8 +128,9 @@ fun ProfileLayout(context: Context, modifier: Modifier, lottoViewModel: LottoVie
             }
             when (selectedTabIndex) {
                 0 -> {
-                    lottoNumberContent(numbersData)
+                    lottoNumberContent(numbersData, numberViewModel)
                 }
+
                 1 -> {
                     winnerLottoNumberContent(lottoApi)
                 }
@@ -141,30 +166,68 @@ fun ProfileLayout(context: Context, modifier: Modifier, lottoViewModel: LottoVie
     }
 }
 
-fun LazyListScope.lottoNumberContent(numberViewModel: LottoNumbers?) {
-    numberViewModel?.let {
+fun LazyListScope.lottoNumberContent(
+    lottoNumber: LottoNumbers?,
+    numberViewModel: NumbersViewModel
+) {
+    lottoNumber?.let {
         items(it.numbers.size) { index ->
             it.numbers[index].let { lotto ->
-
                 val margin = if (index == 0) 20 else 10
 
-                Spacer(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(margin.dp)
-                )
-                DrawLottoNumber(lotto)
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(10.dp)
-                )
+                        .padding(top = margin.dp, bottom = 10.dp)
+                        .combinedClickable(
+                            onClick = { },
+                            onLongClick = { numberViewModel.toggleEditMode() }
+                        ),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    DrawLottoNumber(lotto)
+                    if (numberViewModel.isEditMode.value) {
+                        Spacer(modifier = Modifier.width(3.dp))
+                        CustomCircleButton(
+                            icon = Icons.Default.Close,
+                            backgroundColor = Color(0xFFFF499B),
+                            size = 36,
+                            onClick = {numberViewModel.removeNumbers(index)}
+                        )
+                    }
+                }
             }
         }
     }
 }
 
-fun LazyListScope.winnerLottoNumberContent(lottoApi : LazyPagingItems<Lotto>) {
+@Composable
+fun CustomCircleButton(
+    icon: ImageVector,
+    backgroundColor: Color = Color.Blue,
+    iconColor: Color = Color.White,
+    size: Int = 56,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(size.dp)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = "원형 버튼",
+            tint = iconColor,
+            modifier = Modifier.size((size * 0.5).dp)
+        )
+    }
+}
+
+fun LazyListScope.winnerLottoNumberContent(lottoApi: LazyPagingItems<Lotto>) {
     items(lottoApi.itemCount) { index ->
         lottoApi[index]?.let { lotto ->
 
@@ -186,7 +249,7 @@ fun LazyListScope.winnerLottoNumberContent(lottoApi : LazyPagingItems<Lotto>) {
 }
 
 @Composable
-fun ProfileHeader(lottoLatestApiResult: LottoLatestApiResult) {
+fun MainHeader(lottoLatestApiResult: LottoLatestApiResult) {
     Column {
         Spacer(
             modifier = Modifier
@@ -251,7 +314,6 @@ fun DrawWinnerLottoNumber(lotto: Lotto) {
 @Composable
 fun DrawLottoNumber(lotto: List<Int>) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
