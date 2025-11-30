@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.barcode.scanning)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.compose.runtime.livedata)
+    implementation("androidx.navigation:navigation-compose:2.7.0")
     kapt(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

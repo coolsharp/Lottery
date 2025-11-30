@@ -47,10 +47,11 @@ import com.coolsharp.qrcode.QRActivity
 fun MainLayout(
     context: Context,
     modifier: Modifier,
-    lottoViewModel: LottoViewModel = viewModel(),
-    mainViewModel: MainViewModel = viewModel(),
-    numberViewModel: NumbersViewModel = viewModel(),
-    tabViewModel: TabViewModel = viewModel()
+    lottoViewModel: LottoViewModel,
+    mainViewModel: MainViewModel,
+    numberViewModel: NumbersViewModel,
+    tabViewModel: TabViewModel,
+    onNavigateToLottoNumberGenerator: () -> Unit
 ) {
     val selectedTabIndex by tabViewModel.selectedTabIndex.collectAsState()
     val lottoApi = lottoViewModel.lotto.collectAsLazyPagingItems()
@@ -143,9 +144,7 @@ fun MainLayout(
                 modifier = Modifier
                     .weight(1f)
                     .height(50.dp),
-                onClick = {
-                    // 버튼 클릭 시 실행할 로직
-                }
+                onClick = onNavigateToLottoNumberGenerator
             ) {
                 Text("새 번호 생성")
             }
@@ -317,16 +316,18 @@ fun DrawLottoNumber(lotto: List<Int>) {
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CircleWithStroke(lotto[0]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto[1]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto[2]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto[3]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto[4]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto[5]) {}
+        if (5 < lotto.size) {
+            CircleWithStroke(lotto[0]) {}
+            Spacer(modifier = Modifier.width(3.dp))
+            CircleWithStroke(lotto[1]) {}
+            Spacer(modifier = Modifier.width(3.dp))
+            CircleWithStroke(lotto[2]) {}
+            Spacer(modifier = Modifier.width(3.dp))
+            CircleWithStroke(lotto[3]) {}
+            Spacer(modifier = Modifier.width(3.dp))
+            CircleWithStroke(lotto[4]) {}
+            Spacer(modifier = Modifier.width(3.dp))
+            CircleWithStroke(lotto[5]) {}
+        }
     }
 }

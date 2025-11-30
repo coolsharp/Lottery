@@ -20,11 +20,11 @@ import androidx.compose.ui.unit.sp
 fun CircleWithStroke(number: Int, content: @Composable () -> Unit) {
     var colorStroke = Color.Transparent
     when (number) {
-        in 1..9 -> colorStroke = Color(0xFFFBC402)
-        in 10..19 -> colorStroke = Color(0xFF68C7F0)
-        in 20..29 -> colorStroke = Color(0xFFFF7172)
-        in 30..39 -> colorStroke = Color(0xFFAAAAAA)
-        in 40..45 -> colorStroke = Color(0xFFB0D840)
+        in 1..9 -> colorStroke = Color(0xFFFBBF24)
+        in 10..19 -> colorStroke = Color(0xFF3B82F6)
+        in 20..29 -> colorStroke = Color(0xFFEF4444)
+        in 30..39 -> colorStroke = Color(0xFF6B7280)
+        in 40..45 -> colorStroke = Color(0xFF10B981)
     }
 
     Box(

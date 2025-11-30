@@ -2,4 +2,5 @@
     <string name="app_name">Lottery</string>
     <string name="my_number_management">내 번호관리</string>
     <string name="winning_numbers_by_draw">회차별 당첨번호</string>
+    <string name="title_activity_new_number">NewNumberActivity</string>
 </resources>

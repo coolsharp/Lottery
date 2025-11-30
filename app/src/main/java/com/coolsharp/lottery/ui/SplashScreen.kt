@@ -1,6 +1,7 @@
 package com.coolsharp.lottery.ui
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -109,6 +110,7 @@ fun SplashScreen(context: Context, modifier: Modifier) {
             showSplash = false
         }
     } else {
-        MainLayout(context = context, modifier)
+//        Log.d("coolsharp", "splash Screen")
+//        MainLayout(context = context, modifier)
     }
 }
