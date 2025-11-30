@@ -46,6 +46,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.style.TextAlign
+import com.coolsharp.lottery.common.NumberBall
+import com.coolsharp.lottery.common.getNumberColor
+import com.coolsharp.lottery.data.ShowError
 import kotlinx.coroutines.delay
 
 @Composable
@@ -53,7 +56,7 @@ fun LottoNumberGeneratorScreen(onReturnResult: (Set<Int>) -> Unit) {
     // 선택된 번호
     var selectedNumbers by remember { mutableStateOf(setOf<Int>()) }
     // 에러 보이기
-    var showError by remember { mutableStateOf(false) }
+    var showError by remember { mutableStateOf(ShowError(show = false)) }
 
     // 번호 선택/해제
     fun toggleNumber(number: Int) {
@@ -66,7 +69,7 @@ fun LottoNumberGeneratorScreen(onReturnResult: (Set<Int>) -> Unit) {
                 selectedNumbers + number
             // 6개보다 크면 에러 보이기
             } else {
-                showError = true
+                showError = showError.copy(show = true, message = "⚠️ 최대 6개까지만 선택할 수 있습니다.")
                 selectedNumbers
             }
         }
@@ -75,13 +78,16 @@ fun LottoNumberGeneratorScreen(onReturnResult: (Set<Int>) -> Unit) {
     // 랜덤 생성
     fun generateRandom() {
         selectedNumbers = (1..45).shuffled().take(6).toSet()
-        showError = false
+        showError = showError.copy(show = false)
     }
 
     // 초기화
     fun reset() {
         selectedNumbers = emptySet()
-        showError = false
+        showError = showError.copy(
+            show = false,
+            message = ""
+        )
     }
 
     Box(
@@ -181,7 +187,7 @@ fun LottoNumberGeneratorScreen(onReturnResult: (Set<Int>) -> Unit) {
 
                     // 에러 메시지
                     AnimatedVisibility(
-                        visible = showError,
+                        visible = showError.show,
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically()
                     ) {
@@ -193,7 +199,7 @@ fun LottoNumberGeneratorScreen(onReturnResult: (Set<Int>) -> Unit) {
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = "⚠️ 최대 6개까지만 선택할 수 있습니다",
+                                text = showError.message,
                                 color = Color(0xFFDC2626),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
@@ -203,7 +209,7 @@ fun LottoNumberGeneratorScreen(onReturnResult: (Set<Int>) -> Unit) {
 
                         LaunchedEffect(Unit) {
                             delay(2000)
-                            showError = false
+                            showError = showError.copy(show = false)
                         }
                     }
 
@@ -255,7 +261,14 @@ fun LottoNumberGeneratorScreen(onReturnResult: (Set<Int>) -> Unit) {
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
-                            onClick = {onReturnResult(selectedNumbers)},
+                            onClick = {
+                                if (selectedNumbers.size == 6) {
+                                    onReturnResult(selectedNumbers)
+                                }
+                                else {
+                                    showError = showError.copy(show = true, message = "⚠️ 번호 6개를 선택하여야 저장할 수 있습니다.")
+                                }
+                                      },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp),
@@ -413,6 +426,7 @@ fun NumberGrid(
                             number = number,
                             isSelected = number in selectedNumbers,
                             onClick = { onNumberClick(number) },
+                            onLongClick = {  },
                             modifier = Modifier.weight(1f)
                         )
                     } else {
@@ -424,81 +438,5 @@ fun NumberGrid(
 
         // 하단 여유 공간
         Spacer(modifier = Modifier.height(8.dp))
-    }
-}
-
-// ============================================
-// 번호 볼 컴포넌트
-// ============================================
-
-@Composable
-fun NumberBall(
-    number: Int,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var scale by remember { mutableStateOf(1f) }
-    val animatedScale by animateFloatAsState(
-        targetValue = scale,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "scale"
-    )
-
-    Box(
-        modifier = modifier
-            .aspectRatio(1f)
-            .scale(animatedScale)
-            .clip(CircleShape)
-            .background(
-                if (isSelected) {
-                    Brush.linearGradient(
-                        colors = listOf(
-                            getNumberColor(number),
-                            getNumberColor(number).copy(alpha = 0.8f)
-                        )
-                    )
-                } else {
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFFF9FAFB), Color(0xFFF3F4F6))
-                    )
-                }
-            )
-            .border(
-                width = if (isSelected) 3.dp else 1.5.dp,
-                color = if (isSelected) Color.White.copy(alpha = 0.6f) else Color(0xFFE5E7EB),
-                shape = CircleShape
-            )
-            .clickable {
-                scale = 0.85f
-                onClick()
-                scale = 1f
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = number.toString(),
-            fontSize = 16.sp,
-            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
-            color = if (isSelected) Color.White else Color(0xFF6B7280),
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-// ============================================
-// 번호별 색상
-// ============================================
-
-fun getNumberColor(number: Int): Color {
-    return when (number) {
-        in 1..10 -> Color(0xFFFBBF24)   // 노란색
-        in 11..20 -> Color(0xFF3B82F6)  // 파란색
-        in 21..30 -> Color(0xFFEF4444)  // 빨간색
-        in 31..40 -> Color(0xFF6B7280)  // 회색
-        else -> Color(0xFF10B981)       // 초록색
     }
 }

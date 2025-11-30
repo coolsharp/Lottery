@@ -21,16 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.coolsharp.lottery.R
-import com.coolsharp.lottery.common.CircleWithStroke
+import com.coolsharp.lottery.common.NumberBall
 import com.coolsharp.lottery.data.Lotto
 import com.coolsharp.lottery.data.LottoLatestApiResult
 import com.coolsharp.lottery.data.LottoNumbers
@@ -39,7 +40,6 @@ import com.coolsharp.lottery.viewmodel.LottoViewModel
 import com.coolsharp.lottery.viewmodel.MainViewModel
 import com.coolsharp.lottery.viewmodel.NumbersViewModel
 import com.coolsharp.lottery.viewmodel.TabViewModel
-import com.coolsharp.lottery.viewmodel.TabViewModelHolder
 import com.coolsharp.qrcode.QRActivity
 
 
@@ -185,7 +185,7 @@ fun LazyListScope.lottoNumberContent(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DrawLottoNumber(lotto)
+                    DrawLottoNumber(lotto, numberViewModel)
                     if (numberViewModel.isEditMode.value) {
                         Spacer(modifier = Modifier.width(3.dp))
                         CustomCircleButton(
@@ -274,7 +274,18 @@ fun MainHeader(lottoLatestApiResult: LottoLatestApiResult) {
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(10.dp)
+                .height(4.dp)
+        )
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            text = "추첨일 : ${lottoLatestApiResult.data.drawDate}",
+            fontSize = 15.sp
+        )
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
         )
         DrawWinnerLottoNumber(lottoLatestApiResult.data)
         Spacer(
@@ -292,42 +303,50 @@ fun DrawWinnerLottoNumber(lotto: Lotto) {
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CircleWithStroke(lotto.numbers[0]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[1]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[2]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[3]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[4]) {}
-        Spacer(modifier = Modifier.width(3.dp))
-        CircleWithStroke(lotto.numbers[5]) {}
-        Spacer(modifier = Modifier.width(7.dp))
+        var margin = 3.dp
+        if (5 < lotto.numbers.size) {
+            for (i in 0..<lotto.numbers.size) {
+                NumberBall(
+                    number = lotto.numbers[i],
+                    isSelected = true,
+                    onClick = {  },
+                    onLongClick = {  },
+                    modifier = Modifier.weight(1f)
+                )
+                if ( 5 > i) margin = 7.dp
+                Spacer(modifier = Modifier.width(margin))
+            }
+        }
         Text("+")
-        Spacer(modifier = Modifier.width(7.dp))
-        CircleWithStroke(lotto.bonusNumber) {}
+        Spacer(modifier = Modifier.width(margin))
+        NumberBall(
+            number = lotto.bonusNumber,
+            isSelected = true,
+            onClick = {  },
+            onLongClick = {  },
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
 @Composable
-fun DrawLottoNumber(lotto: List<Int>) {
+fun DrawLottoNumber(lotto: List<Int>, numberViewModel: NumbersViewModel) {
     Row(
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.width(300.dp)
     ) {
         if (5 < lotto.size) {
-            CircleWithStroke(lotto[0]) {}
-            Spacer(modifier = Modifier.width(3.dp))
-            CircleWithStroke(lotto[1]) {}
-            Spacer(modifier = Modifier.width(3.dp))
-            CircleWithStroke(lotto[2]) {}
-            Spacer(modifier = Modifier.width(3.dp))
-            CircleWithStroke(lotto[3]) {}
-            Spacer(modifier = Modifier.width(3.dp))
-            CircleWithStroke(lotto[4]) {}
-            Spacer(modifier = Modifier.width(3.dp))
-            CircleWithStroke(lotto[5]) {}
+            for (i in 0..5) {
+                NumberBall(
+                    number = lotto[i],
+                    isSelected = true,
+                    onClick = {  },
+                    onLongClick = { numberViewModel.toggleEditMode() },
+                    modifier = Modifier.weight(1f)
+                )
+                if ( 5 > i) Spacer(modifier = Modifier.width(3.dp))
+            }
         }
     }
 }
