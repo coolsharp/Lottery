@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.style.TextAlign
 import com.coolsharp.lottery.common.NumberBall
 import com.coolsharp.lottery.common.getNumberColor
+import com.coolsharp.lottery.data.ButtonType
 import com.coolsharp.lottery.data.ShowError
 import kotlinx.coroutines.delay
 
@@ -422,9 +423,11 @@ fun NumberGrid(
                 for (col in 0..4) {
                     val number = row * 5 + col + 1
                     if (number <= 45) {
+                        var buttonType: ButtonType = ButtonType.None
+                        if (number in selectedNumbers) buttonType = ButtonType.Selected
                         NumberBall(
                             number = number,
-                            isSelected = number in selectedNumbers,
+                            buttonType,
                             onClick = { onNumberClick(number) },
                             onLongClick = {  },
                             modifier = Modifier.weight(1f)

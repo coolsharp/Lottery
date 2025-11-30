@@ -10,20 +10,26 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,15 +38,19 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.coolsharp.lottery.R
 import com.coolsharp.lottery.common.NumberBall
+import com.coolsharp.lottery.data.ButtonType
 import com.coolsharp.lottery.data.Lotto
 import com.coolsharp.lottery.data.LottoLatestApiResult
 import com.coolsharp.lottery.data.LottoNumbers
+import com.coolsharp.lottery.data.ShowError
+import com.coolsharp.lottery.data.TabType
 import com.coolsharp.lottery.data.UiStateLatestLotto
 import com.coolsharp.lottery.viewmodel.LottoViewModel
 import com.coolsharp.lottery.viewmodel.MainViewModel
 import com.coolsharp.lottery.viewmodel.NumbersViewModel
 import com.coolsharp.lottery.viewmodel.TabViewModel
 import com.coolsharp.qrcode.QRActivity
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -58,7 +68,9 @@ fun MainLayout(
     val uiState by mainViewModel.uiState.collectAsState()
     val numbersData by numberViewModel.numbersLiveData.observeAsState()
     numberViewModel.loadNumbers()
-//    Log.d("coolsharp", numbersData?.numbers.toString())
+
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     // 하드웨어 백키 클릭 핸들러
     BackHandler(enabled = numberViewModel.isEditMode.value) {
@@ -70,7 +82,8 @@ fun MainLayout(
         LazyColumn(
             modifier
                 .fillMaxWidth()
-                .weight(1f)
+                .weight(1f),
+            state = listState
         ) {
             item {
                 when (uiState) {
@@ -100,7 +113,7 @@ fun MainLayout(
             }
             stickyHeader {
                 TabRow(selectedTabIndex = selectedTabIndex) {
-                    repeat(2) { index ->
+                    repeat(TabType.entries.size) { index ->
                         Tab(
                             selected = selectedTabIndex == index,
                             onClick = {
@@ -114,8 +127,8 @@ fun MainLayout(
                             )
                             var text = ""
                             when (index) {
-                                0 -> text = stringResource(R.string.my_number_management)
-                                1 -> text = stringResource(R.string.winning_numbers_by_draw)
+                                TabType.MyLottoNumber.index -> text = stringResource(R.string.my_number_management)
+                                TabType.WinnerLottoNumber.index -> text = stringResource(R.string.winning_numbers_by_draw)
                             }
                             Text(text)
                             Spacer(
@@ -128,11 +141,13 @@ fun MainLayout(
                 }
             }
             when (selectedTabIndex) {
-                0 -> {
+                TabType.MyLottoNumber.index -> {
+                    coroutineScope.launch {listState.animateScrollToItem(0)}
                     lottoNumberContent(numbersData, numberViewModel)
                 }
 
-                1 -> {
+                TabType.WinnerLottoNumber.index -> {
+                    coroutineScope.launch {listState.animateScrollToItem(0)}
                     winnerLottoNumberContent(lottoApi)
                 }
             }
@@ -192,7 +207,7 @@ fun LazyListScope.lottoNumberContent(
                             icon = Icons.Default.Close,
                             backgroundColor = Color(0xFFFF499B),
                             size = 36,
-                            onClick = {numberViewModel.removeNumbers(index)}
+                            onClick = { numberViewModel.removeNumbers(index) }
                         )
                     }
                 }
@@ -236,6 +251,30 @@ fun LazyListScope.winnerLottoNumberContent(lottoApi: LazyPagingItems<Lotto>) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(margin.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .background(Color(0xFFFFEE91), shape = RoundedCornerShape(8.dp))
+                    .fillMaxWidth(),
+            ) {
+                Text(
+                    text = " ${lotto.drawNo}회 당첨번호(추첨일 : ${lotto.drawDate}) ",
+                    color = Color(0xFF57595B),
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        color = Color.Black,
+                        shadow = Shadow(
+                            color = Color.Gray,
+                            offset = Offset(4f, 4f),
+                            blurRadius = 8f
+                        )
+                    )
+                )
+            }
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
             )
             DrawWinnerLottoNumber(lotto)
             Spacer(
@@ -308,12 +347,12 @@ fun DrawWinnerLottoNumber(lotto: Lotto) {
             for (i in 0..<lotto.numbers.size) {
                 NumberBall(
                     number = lotto.numbers[i],
-                    isSelected = true,
-                    onClick = {  },
-                    onLongClick = {  },
+                    ButtonType.Selected,
+                    onClick = { },
+                    onLongClick = { },
                     modifier = Modifier.weight(1f)
                 )
-                if ( 5 > i) margin = 7.dp
+                if (5 > i) margin = 7.dp
                 Spacer(modifier = Modifier.width(margin))
             }
         }
@@ -321,9 +360,9 @@ fun DrawWinnerLottoNumber(lotto: Lotto) {
         Spacer(modifier = Modifier.width(margin))
         NumberBall(
             number = lotto.bonusNumber,
-            isSelected = true,
-            onClick = {  },
-            onLongClick = {  },
+            ButtonType.Selected,
+            onClick = { },
+            onLongClick = { },
             modifier = Modifier.weight(1f)
         )
     }
@@ -340,12 +379,12 @@ fun DrawLottoNumber(lotto: List<Int>, numberViewModel: NumbersViewModel) {
             for (i in 0..5) {
                 NumberBall(
                     number = lotto[i],
-                    isSelected = true,
-                    onClick = {  },
+                    ButtonType.Selected,
+                    onClick = { },
                     onLongClick = { numberViewModel.toggleEditMode() },
                     modifier = Modifier.weight(1f)
                 )
-                if ( 5 > i) Spacer(modifier = Modifier.width(3.dp))
+                if (5 > i) Spacer(modifier = Modifier.width(3.dp))
             }
         }
     }

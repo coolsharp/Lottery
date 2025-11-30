@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.coolsharp.lottery.data.ButtonType
 
 fun Color.darken(factor: Float = 0.8f): Color {
     return Color(
@@ -63,28 +64,33 @@ fun TextWithOutlineExtension(text: String, size: TextUnit, textColor: Color, str
 @Composable
 fun NumberBall(
     number: Int,
-    isSelected: Boolean,
+    buttonType: ButtonType,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var scale by remember { mutableStateOf(1f) }
-    val animatedScale by animateFloatAsState(
-        targetValue = scale,
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.85f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessMedium
         ),
-        label = "scale"
+        label = "scale",
+        finishedListener = {
+            if (isPressed) {
+                isPressed = false
+            }
+        }
     )
 
     Box(
         modifier = modifier
             .aspectRatio(1f)
-            .scale(animatedScale)
+            .scale(scale)
             .clip(CircleShape)
             .background(
-                if (isSelected) {
+                if (buttonType != ButtonType.None) {
                     Brush.linearGradient(
                         colors = listOf(
                             getNumberColor(number),
@@ -98,20 +104,26 @@ fun NumberBall(
                 }
             )
             .border(
-                width = if (isSelected) 3.dp else 1.5.dp,
-                color = if (isSelected) Color.White.copy(alpha = 0.6f) else Color(0xFFE5E7EB),
+                width = when (buttonType) {
+                    ButtonType.Selected -> 3.dp
+                    ButtonType.Winner -> 5.dp
+                    else -> 1.5.dp
+                },
+                color = when (buttonType) {
+                    ButtonType.Selected -> Color.White.copy(alpha = 0.6f)
+                    ButtonType.Winner -> Color.Red.copy(alpha = 0.6f)
+                    else -> Color(0xFFE5E7EB)
+                },
                 shape = CircleShape
             )
             .combinedClickable(
                 onClick = {
-                    scale = 0.85f
+                    isPressed = true
                     onClick()
-                    scale = 1f
                 },
                 onLongClick = {
-                    scale = 0.85f
+                    isPressed = true
                     onLongClick()
-                    scale = 1f
                 }
             ),
         contentAlignment = Alignment.Center
@@ -119,8 +131,16 @@ fun NumberBall(
         Text(
             text = number.toString(),
             fontSize = 16.sp,
-            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
-            color = if (isSelected) Color.White else Color(0xFF6B7280),
+            fontWeight = when (buttonType) {
+                ButtonType.Selected -> FontWeight.ExtraBold
+                ButtonType.Winner -> FontWeight.ExtraBold
+                else -> FontWeight.SemiBold
+            },
+            color = when (buttonType) {
+                ButtonType.Selected -> Color.White
+                ButtonType.Winner -> Color.White
+                else -> Color(0xFF6B7280)
+            },
             textAlign = TextAlign.Center
         )
     }
