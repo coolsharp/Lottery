@@ -1,8 +1,14 @@
 package com.coolsharp.lottery.common
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,8 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -84,6 +94,17 @@ fun NumberBall(
         }
     )
 
+    val infiniteTransition = rememberInfiniteTransition(label = "glow")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowAlpha"
+    )
+
     Box(
         modifier = modifier
             .aspectRatio(1f)
@@ -106,16 +127,24 @@ fun NumberBall(
             .border(
                 width = when (buttonType) {
                     ButtonType.Selected -> 3.dp
-                    ButtonType.Winner -> 5.dp
+                    ButtonType.Winner -> 3.dp
                     else -> 1.5.dp
                 },
                 color = when (buttonType) {
                     ButtonType.Selected -> Color.White.copy(alpha = 0.6f)
-                    ButtonType.Winner -> Color.Red.copy(alpha = 0.6f)
+                    ButtonType.Winner -> Color.White.copy(alpha = 0.6f)
                     else -> Color(0xFFE5E7EB)
                 },
                 shape = CircleShape
             )
+//            .background(
+//                brush = Brush.radialGradient(
+//                    colors = listOf(Color(0xFFD1D5DB), Color(0xFF9CA3AF), Color(0xFF6B7280)).map {
+//                        it.copy(alpha = glowAlpha)
+//                    }
+//                ),
+//                shape = CircleShape
+//            )
             .combinedClickable(
                 onClick = {
                     isPressed = true
@@ -138,10 +167,17 @@ fun NumberBall(
             },
             color = when (buttonType) {
                 ButtonType.Selected -> Color.White
-                ButtonType.Winner -> Color.White
+                ButtonType.Winner -> Color.Red
                 else -> Color(0xFF6B7280)
             },
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.White,
+                    offset = Offset(0f, 0f),
+                    blurRadius = 10f
+                )
+            )
         )
     }
 }
